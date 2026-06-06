@@ -1,0 +1,32 @@
+# ── Secrets & environment ──────────────────────────────────
+.env
+.env.*
+*.key
+*.pem
+*_token*
+*secret*
+
+# ── Python ─────────────────────────────────────────────────
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.venv/
+venv/
+
+# ── ALL personal data, cosmology, memory, databases ───────
+# Nothing under data/ should ever be public:
+#  - NCAIDSHP / NCAIDSSHM / NCAIDSLPHD corpora (cosmology + memory)
+#  - Chroma vector DBs (embeddings of all personal content)
+#  - subscribers.db (real people's email addresses)
+#  - warden policy, journal/reply data
+data/
+
+# ── Databases anywhere ─────────────────────────────────────
+*.db
+*.sqlite
+*.sqlite3
+
+# ── Logs & scratch ─────────────────────────────────────────
+*.log
+*.jsonl

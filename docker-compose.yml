@@ -1,0 +1,74 @@
+services:
+
+  myarea-ai:
+    build: .
+    container_name: myarea-ai
+    restart: unless-stopped
+    ports:
+      - "8930:8930"
+    env_file: .env
+    volumes:
+      - ./data:/app/data
+      - /usr/bin/nvidia-smi:/usr/bin/nvidia-smi:ro
+      - /usr/lib/x86_64-linux-gnu/libnvidia-ml.so.1:/usr/lib/x86_64-linux-gnu/libnvidia-ml.so.1:ro
+      - /usr/lib/x86_64-linux-gnu/libnvidia-ml.so.580.159.03:/usr/lib/x86_64-linux-gnu/libnvidia-ml.so.580.159.03:ro
+      - /usr/lib/x86_64-linux-gnu/libnvidia-ml.so:/usr/lib/x86_64-linux-gnu/libnvidia-ml.so:ro
+    devices:
+      - /dev/nvidia0:/dev/nvidia0
+      - /dev/nvidiactl:/dev/nvidiactl
+      - /dev/nvidia-uvm:/dev/nvidia-uvm
+      - /dev/nvidia-uvm-tools:/dev/nvidia-uvm-tools
+      - /dev/nvidia-modeset:/dev/nvidia-modeset
+    networks:
+      - myarea_shared_net
+    depends_on:
+      - redis-ai
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8930/api/status"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  redis-ai:
+    image: redis:7-alpine
+    container_name: myarea-ai-redis
+    restart: unless-stopped
+    command: redis-server --save 60 1 --loglevel warning
+    volumes:
+      - redis_ai_data:/data
+    networks:
+      - myarea_shared_net
+
+  chaos-worker:
+    build: .
+    container_name: myarea-ai-chaos
+    restart: unless-stopped
+    working_dir: /app
+    command: celery -A workers.chaos worker --beat -l info
+    env_file: .env
+    environment:
+      - PYTHONPATH=/app
+    volumes:
+      - ./data:/app/data
+      - /usr/bin/nvidia-smi:/usr/bin/nvidia-smi:ro
+      - /usr/lib/x86_64-linux-gnu/libnvidia-ml.so.1:/usr/lib/x86_64-linux-gnu/libnvidia-ml.so.1:ro
+      - /usr/lib/x86_64-linux-gnu/libnvidia-ml.so.580.159.03:/usr/lib/x86_64-linux-gnu/libnvidia-ml.so.580.159.03:ro
+      - /usr/lib/x86_64-linux-gnu/libnvidia-ml.so:/usr/lib/x86_64-linux-gnu/libnvidia-ml.so:ro
+    devices:
+      - /dev/nvidia0:/dev/nvidia0
+      - /dev/nvidiactl:/dev/nvidiactl
+      - /dev/nvidia-uvm:/dev/nvidia-uvm
+      - /dev/nvidia-uvm-tools:/dev/nvidia-uvm-tools
+      - /dev/nvidia-modeset:/dev/nvidia-modeset
+    networks:
+      - myarea_shared_net
+    depends_on:
+      - redis-ai
+      - myarea-ai
+
+networks:
+  myarea_shared_net:
+    external: true
+
+volumes:
+  redis_ai_data:

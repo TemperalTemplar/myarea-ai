@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Silex | MyArea AI</title>
+  <link rel="icon" type="image/x-icon" href="https://apps.wrds361.com/static/favicon.ico">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg:          #0d0f14;
+      --bg2:         #111520;
+      --bg3:         #161b28;
+      --border:      #1e2535;
+      --border2:     #2a3448;
+      --accent:      #e63946;
+      --accent2:     #ff4d5a;
+      --text:        #e8eaf0;
+      --text-dim:    #8899bb;
+      --text-muted:  #4a5a7a;
+      --font-display:'Archivo Black', sans-serif;
+      --font-mono:   'Space Mono', 'Courier New', monospace;
+      --green:       #00d4a0;
+      --yellow:      #f59e0b;
+      --purple:      #7c3aed;
+      --cyan:        #06b6d4;
+    }
+    [data-theme="light"] {
+      --bg:#f0f2f5; --bg2:#ffffff; --bg3:#e8eaed;
+      --border:#dde1e7; --border2:#c8cdd6;
+      --text:#111520; --text-dim:#444c5e; --text-muted:#7a8499;
+    }
+    [data-theme="high-contrast"] {
+      --bg:#000; --bg2:#0a0a0a; --bg3:#111;
+      --border:#fff; --border2:#fff;
+      --text:#fff; --text-dim:#ccc; --text-muted:#888;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; background: var(--bg); color: var(--text); font-family: var(--font-mono); font-size: 14px; line-height: 1.6; }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { color: var(--accent2); }
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg2); }
+    ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+    ::selection { background: var(--accent); color: #fff; }
+
+    /* ── Nav ── */
+    .ma-nav { background: var(--bg2); border-bottom: 1px solid var(--border2); position: sticky; top: 0; z-index: 1000; }
+    .ma-nav-inner { display: flex; align-items: center; gap: 12px; max-width: 1200px; margin: 0 auto; padding: 0 16px; height: 52px; }
+    .ma-logo { font-family: var(--font-mono); font-size: 16px; font-weight: 700; letter-spacing: 3px; color: var(--accent); text-decoration: none; white-space: nowrap; }
+    .ma-logo span { color: var(--text-dim); }
+    .ma-logo:hover { color: var(--accent2); text-decoration: none; }
+    .ma-nav-links { display: flex; align-items: center; gap: 2px; flex: 1; overflow-x: auto; }
+    .ma-nav-link { display: flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 6px; font-size: 12px; color: var(--text-dim); text-decoration: none; white-space: nowrap; transition: all .15s; }
+    .ma-nav-link:hover, .ma-nav-link.active { background: rgba(230,57,70,.08); color: var(--text); text-decoration: none; }
+    .ma-nav-right { display: flex; align-items: center; gap: 6px; margin-left: auto; }
+    .ma-icon-btn { background: transparent; border: 1px solid var(--border2); border-radius: 6px; width: 36px; height: 36px; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--text-dim); font-size: 15px; text-decoration: none; transition: all .15s; font-family: var(--font-mono); }
+    .ma-icon-btn:hover { border-color: var(--accent); color: var(--text); }
+
+    /* ── Layout ── */
+    #shell { display:flex; flex-direction:column; }
+
+    /* ── Silex header card ── */
+    #silex-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 8px 8px 0 0;
+      border-bottom: none;
+      flex-shrink: 0;
+    }
+    #silex-mark {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 8px var(--accent);
+      flex-shrink: 0;
+      transition: box-shadow 0.3s;
+    }
+    #silex-mark.streaming { box-shadow: 0 0 16px var(--accent2); animation: pulse 0.8s infinite; }
+    #silex-mark.offline   { background: var(--text-muted); box-shadow: none; }
+    @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
+
+    #silex-title { font-size: 13px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text); }
+    #silex-title span { color: var(--accent); }
+    #silex-meta { margin-left: auto; display: flex; align-items: center; gap: 12px; font-size: 11px; color: var(--text-muted); }
+    #intent-badge { padding: 1px 7px; border: 1px solid var(--border2); border-radius: 4px; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); transition: all 0.2s; }
+    #intent-badge.active { border-color: var(--accent); color: var(--accent); }
+
+    /* ── Status bar ── */
+    #statusbar {
+      height: 26px;
+      padding: 0 16px;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-bottom: none;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      font-size: 10px;
+      color: var(--text-muted);
+      letter-spacing: 0.06em;
+      flex-shrink: 0;
+    }
+    #statusbar .sep { color: var(--border2); }
+    #status-text { color: var(--text-muted); }
+    #status-text.active { color: var(--green); }
+    #latency-val { margin-left: auto; }
+
+    /* ── Feed ── */
+    #feed {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-bottom: none;
+      scroll-behavior: smooth;
+    }
+
+    .msg { display: flex; flex-direction: column; gap: 4px; animation: fadein 0.15s ease; }
+    @keyframes fadein { from { opacity:0; transform:translateY(4px); } to { opacity:1; transform:none; } }
+
+    .msg-meta { font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); display: flex; align-items: center; gap: 8px; }
+    .msg.user  .msg-meta { color: var(--text-muted); }
+    .msg.silex .msg-meta { color: var(--accent); }
+
+    .msg-body {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px 14px;
+      white-space: pre-wrap;
+      word-break: break-word;
+      line-height: 1.75;
+      font-size: 13px;
+    }
+    .msg.user  .msg-body { border-color: var(--border); }
+    .msg.silex .msg-body { border-left: 2px solid var(--accent); background: var(--bg2); }
+
+    .cursor::after { content: '▌'; color: var(--accent); animation: blink 0.6s step-end infinite; }
+    @keyframes blink { 50% { opacity:0; } }
+
+    /* ── Composer ── */
+    #composer {
+      display: flex;
+      gap: 0;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 0 0 8px 8px;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+    #prompt-prefix {
+      padding: 10px 0 10px 14px;
+      color: var(--accent);
+      background: var(--bg3);
+      border-right: 1px solid var(--border);
+      font-family: var(--font-mono);
+      font-size: 14px;
+      flex-shrink: 0;
+      user-select: none;
+      display: flex;
+      align-items: center;
+    }
+    #input {
+      flex: 1;
+      background: var(--bg3);
+      border: none;
+      color: var(--text);
+      font-family: var(--font-mono);
+      font-size: 13px;
+      padding: 10px 14px;
+      outline: none;
+      resize: none;
+      line-height: 1.5;
+      min-height: 44px;
+      max-height: 160px;
+      overflow-y: auto;
+    }
+    #input::placeholder { color: var(--text-muted); }
+    #send-btn {
+      background: var(--accent);
+      border: none;
+      border-left: 1px solid var(--border);
+      color: #fff;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      padding: 0 20px;
+      cursor: pointer;
+      text-transform: uppercase;
+      transition: background 0.15s;
+      flex-shrink: 0;
+    }
+    #send-btn:hover:not(:disabled) { background: var(--accent2); }
+    #send-btn:disabled { background: var(--text-muted); cursor: not-allowed; }
+
+    /* ── Sys messages ── */
+    .sys-msg { font-size: 11px; color: var(--text-muted); text-align: center; padding: 4px 0; letter-spacing: 0.08em; }
+    .sys-msg.error { color: var(--accent); }
+
+
+    /* ── Phase 7 sidebar ── */
+    #workspace { display:flex; gap:0; height:calc(100vh - 52px); max-width:1200px; margin:0 auto; padding:20px 16px; }
+    #sidebar { width:260px; flex-shrink:0; background:var(--bg2); border:1px solid var(--border); border-right:none; border-radius:8px 0 0 8px; display:flex; flex-direction:column; overflow:hidden; }
+    #sidebar-head { padding:12px 14px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:8px; }
+    #new-chat-btn { flex:1; background:var(--accent); color:#fff; border:none; border-radius:6px; padding:8px 10px; font-family:var(--font-mono); font-size:11px; letter-spacing:0.08em; text-transform:uppercase; cursor:pointer; transition:background .15s; }
+    #new-chat-btn:hover { background:var(--accent2); }
+    .side-section-label { font-size:9px; color:var(--text-muted); letter-spacing:2px; font-family:var(--font-mono); padding:12px 14px 6px; text-transform:uppercase; display:flex; align-items:center; justify-content:space-between; }
+    .side-section-label button { background:transparent; border:1px solid var(--border2); color:var(--text-dim); border-radius:4px; width:20px; height:20px; cursor:pointer; font-size:12px; line-height:1; }
+    .side-section-label button:hover { border-color:var(--accent); color:var(--accent); }
+    #projects-list, #sessions-list { overflow-y:auto; }
+    #sessions-list { flex:1; }
+    .side-item { padding:8px 14px; cursor:pointer; border-left:2px solid transparent; display:flex; flex-direction:column; gap:2px; transition:background .12s; }
+    .side-item:hover { background:var(--bg3); }
+    .side-item.active { background:var(--bg3); border-left-color:var(--accent); }
+    .side-item-title { font-size:12px; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .side-item-meta { font-size:9px; color:var(--text-muted); letter-spacing:0.04em; }
+    .side-item-row { display:flex; align-items:center; gap:6px; }
+    .side-item-row .side-item-title { flex:1; }
+    .side-item-actions { display:none; gap:4px; }
+    .side-item:hover .side-item-actions { display:flex; }
+    .side-item-actions button { background:transparent; border:none; color:var(--text-muted); cursor:pointer; font-size:11px; padding:0 2px; }
+    .side-item-actions button:hover { color:var(--accent); }
+    .proj-item { padding:7px 14px; cursor:pointer; font-size:12px; color:var(--text-dim); display:flex; align-items:center; gap:6px; border-left:2px solid transparent; }
+    .proj-item:hover { background:var(--bg3); }
+    .proj-item.active { color:var(--text); border-left-color:var(--cyan); background:var(--bg3); }
+    .proj-item .dot { width:6px;height:6px;border-radius:50%;background:var(--cyan);flex-shrink:0; }
+    #chatcol { flex:1; display:flex; flex-direction:column; min-width:0; }
+    @media (max-width:760px){ #sidebar{display:none;} #workspace{padding:12px 8px;} }
+
+    /* ── Scroll btn ── */
+    #scroll-btn { display:none; position:fixed; bottom:80px; right:24px; background:var(--bg3); border:1px solid var(--border2); color:var(--text-dim); font-family:var(--font-mono); font-size:11px; padding:4px 10px; cursor:pointer; border-radius:4px; }
+    #scroll-btn:hover { border-color:var(--accent); color:var(--accent); }
+  </style>
+</head>
+<body>
+
+<!-- ── Nav ── -->
+<nav class="ma-nav">
+  <div class="ma-nav-inner">
+    <a href="https://apps.wrds361.com" class="ma-logo">MY<span>AREA</span></a>
+
+    <div class="ma-nav-links">
+      <a href="https://ai.wrds361.com" class="ma-nav-link active">
+        <i class="bi bi-cpu-fill"></i> Silex
+      </a>
+      <a href="https://myarea.wrds361.com" class="ma-nav-link">
+        <i class="bi bi-people-fill"></i> Social
+      </a>
+      <a href="https://journal.wrds361.com" class="ma-nav-link">
+        <i class="bi bi-journal-text"></i> Journal
+      </a>
+    </div>
+
+    <div class="ma-nav-right">
+      <!-- User -->
+      <div style="position:relative;display:inline-block" id="userWrap">
+        <button class="ma-icon-btn" id="userBtn" style="width:auto;padding:0 10px;gap:6px;font-size:12px;"><i class="bi bi-person-fill"></i><span id="user-display">...</span><i class="bi bi-chevron-down" style="font-size:9px;"></i></button>
+        <div id="userDrop" style="display:none;position:absolute;top:calc(100%+8px);right:0;min-width:160px;background:#1a2030;border:1px solid #2a3448;border-radius:8px;z-index:9999;padding:6px 0;">
+          <div style="padding:8px 14px;font-size:11px;color:#8899bb;border-bottom:1px solid #2a3448;" id="user-email">—</div>
+          <a href="/auth/logout" style="display:flex;align-items:center;gap:8px;padding:8px 14px;font-size:12px;color:#e63946;text-decoration:none;">Logout</a>
+        </div>
+      </div>
+      <!-- Theme -->
+      <button onclick="toggleTheme()" id="ma-theme-btn" class="ma-icon-btn" title="Toggle day/night">&#9790;</button>
+      <button onclick="toggleContrast()" class="ma-icon-btn" title="High contrast" style="font-size:10px;letter-spacing:1px;width:auto;padding:0 8px;">HC</button>
+
+      <!-- 9-dot Launcher -->
+      <div style="position:relative;display:inline-block" id="ma-launcher-wrap">
+        <button id="ma-launcher-btn" aria-label="MyArea app launcher" aria-expanded="false" class="ma-icon-btn">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="1" y="1" width="4" height="4" rx="1" fill="#888"/><rect x="6" y="1" width="4" height="4" rx="1" fill="#888"/><rect x="11" y="1" width="4" height="4" rx="1" fill="#888"/><rect x="1" y="6" width="4" height="4" rx="1" fill="#888"/><rect x="6" y="6" width="4" height="4" rx="1" fill="#888"/><rect x="11" y="6" width="4" height="4" rx="1" fill="#888"/><rect x="1" y="11" width="4" height="4" rx="1" fill="#888"/><rect x="6" y="11" width="4" height="4" rx="1" fill="#888"/><rect x="11" y="11" width="4" height="4" rx="1" fill="#888"/></svg>
+        </button>
+        <div id="ma-launcher-dd" style="display:none;position:absolute;top:calc(100% + 8px);right:0;width:300px;background:#1a2030;border:1px solid #2a3448;border-radius:8px;z-index:9999">
+          <div style="padding:10px 14px 8px;border-bottom:1px solid #243040;display:flex;align-items:center;justify-content:space-between">
+            <div>
+              <div style="font-family:'Space Mono',monospace;font-size:12px;letter-spacing:3px;color:#e63946;font-weight:700">MY<span style="color:#8899bb">AREA</span></div>
+              <div style="font-size:9px;color:#4a5a7a;letter-spacing:2px;font-family:'Space Mono',monospace">SOVEREIGN PLATFORM</div>
+            </div>
+            <div style="width:6px;height:6px;border-radius:50%;background:#00d4a0" id="launcher-status-dot"></div>
+          </div>
+          <div style="font-size:9px;color:#4a5a7a;letter-spacing:2px;font-family:'Space Mono',monospace;padding:10px 14px 4px">MYAREA APPS</div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:2px;padding:4px 8px 8px">
+            <a href="https://myarea.wrds361.com" target="_blank" style="display:flex;flex-direction:column;align-items:center;gap:5px;padding:10px 6px;border-radius:6px;text-decoration:none;border:1px solid transparent"><div style="width:36px;height:36px;border-radius:6px;background:rgba(230,57,70,0.15);border:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#e63946" stroke-width="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></div><span style="font-size:9px;color:#8899bb;letter-spacing:1px;font-family:'Space Mono',monospace;text-transform:uppercase">Social</span></a>
+            <a href="https://positive.wrds361.com" target="_blank" style="display:flex;flex-direction:column;align-items:center;gap:5px;padding:10px 6px;border-radius:6px;text-decoration:none;border:1px solid transparent"><div style="width:36px;height:36px;border-radius:6px;background:rgba(0,212,160,0.15);border:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#00d4a0" stroke-width="1.5"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div><span style="font-size:9px;color:#8899bb;letter-spacing:1px;font-family:'Space Mono',monospace;text-transform:uppercase">Positive</span></a>
+            <a href="https://journal.wrds361.com" target="_blank" style="display:flex;flex-direction:column;align-items:center;gap:5px;padding:10px 6px;border-radius:6px;text-decoration:none;border:1px solid transparent"><div style="width:36px;height:36px;border-radius:6px;background:rgba(245,158,11,0.15);border:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div><span style="font-size:9px;color:#8899bb;letter-spacing:1px;font-family:'Space Mono',monospace;text-transform:uppercase">Journal</span></a>
+            <a href="https://geozones.wrds361.com" target="_blank" style="display:flex;flex-direction:column;align-items:center;gap:5px;padding:10px 6px;border-radius:6px;text-decoration:none;border:1px solid transparent"><div style="width:36px;height:36px;border-radius:6px;background:rgba(200,200,0,0.1);border:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#cccc00" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></div><span style="font-size:9px;color:#8899bb;letter-spacing:1px;font-family:'Space Mono',monospace;text-transform:uppercase">GeoZones</span></a>
+            <a href="https://myareagames.wrds361.com" target="_blank" style="display:flex;flex-direction:column;align-items:center;gap:5px;padding:10px 6px;border-radius:6px;text-decoration:none;border:1px solid transparent"><div style="width:36px;height:36px;border-radius:6px;background:rgba(124,58,237,0.15);border:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="1.5"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M12 12h.01M7 12h.01M17 12h.01"/></svg></div><span style="font-size:9px;color:#8899bb;letter-spacing:1px;font-family:'Space Mono',monospace;text-transform:uppercase">Games</span></a>
+            <a href="https://chat.wrds361.com" target="_blank" style="display:flex;flex-direction:column;align-items:center;gap:5px;padding:10px 6px;border-radius:6px;text-decoration:none;border:1px solid transparent"><div style="width:36px;height:36px;border-radius:6px;background:rgba(6,182,212,0.15);border:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#06b6d4" stroke-width="1.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div><span style="font-size:9px;color:#8899bb;letter-spacing:1px;font-family:'Space Mono',monospace;text-transform:uppercase">Chat</span></a>
+            <a href="https://forum.wrds361.com" target="_blank" style="display:flex;flex-direction:column;align-items:center;gap:5px;padding:10px 6px;border-radius:6px;text-decoration:none;border:1px solid transparent"><div style="width:36px;height:36px;border-radius:6px;background:rgba(230,57,70,0.15);border:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#e63946" stroke-width="1.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div><span style="font-size:9px;color:#8899bb;letter-spacing:1px;font-family:'Space Mono',monospace;text-transform:uppercase">Forum</span></a>
+            <a href="https://fitness.wrds361.com" target="_blank" style="display:flex;flex-direction:column;align-items:center;gap:5px;padding:10px 6px;border-radius:6px;text-decoration:none;border:1px solid transparent"><div style="width:36px;height:36px;border-radius:6px;background:rgba(220,38,38,0.15);border:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="1.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div><span style="font-size:9px;color:#8899bb;letter-spacing:1px;font-family:'Space Mono',monospace;text-transform:uppercase">Fitness</span></a>
+            <a href="https://groups.wrds361.com" target="_blank" style="display:flex;flex-direction:column;align-items:center;gap:5px;padding:10px 6px;border-radius:6px;text-decoration:none;border:1px solid transparent"><div style="width:36px;height:36px;border-radius:6px;background:rgba(6,182,212,0.15);border:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#06b6d4" stroke-width="1.5"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 0 1 4-4h4"/><path d="M16 11l2 2 4-4"/></svg></div><span style="font-size:9px;color:#8899bb;letter-spacing:1px;font-family:'Space Mono',monospace;text-transform:uppercase">Groups</span></a>
+          </div>
+          <div style="height:1px;background:#243040;margin:0 8px"></div>
+          <div style="font-size:9px;color:#4a5a7a;letter-spacing:2px;font-family:'Space Mono',monospace;padding:10px 14px 4px">TOOLS</div>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:2px;padding:4px 8px 10px">
+            <a href="https://mail.wrds361.com" target="_blank" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 4px;border-radius:6px;text-decoration:none;border:1px solid transparent"><div style="width:28px;height:28px;border-radius:4px;background:rgba(230,57,70,0.12);border:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#e63946" stroke-width="1.5"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></div><span style="font-size:8px;color:#5a6a8a;letter-spacing:0.5px;font-family:'Space Mono',monospace;text-transform:uppercase">Mail</span></a>
+            <a href="https://cloud.wrds361.com" target="_blank" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 4px;border-radius:6px;text-decoration:none;border:1px solid transparent"><div style="width:28px;height:28px;border-radius:4px;background:rgba(0,130,201,0.12);border:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0082c9" stroke-width="1.5"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg></div><span style="font-size:8px;color:#5a6a8a;letter-spacing:0.5px;font-family:'Space Mono',monospace;text-transform:uppercase">Cloud</span></a>
+            <a href="https://vault.wrds361.com" target="_blank" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 4px;border-radius:6px;text-decoration:none;border:1px solid transparent"><div style="width:28px;height:28px;border-radius:4px;background:rgba(23,93,220,0.12);border:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#175DDC" stroke-width="1.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div><span style="font-size:8px;color:#5a6a8a;letter-spacing:0.5px;font-family:'Space Mono',monospace;text-transform:uppercase">Vault</span></a>
+            <a href="https://radio.wrds361.com" target="_blank" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 4px;border-radius:6px;text-decoration:none;border:1px solid transparent"><div style="width:28px;height:28px;border-radius:4px;background:rgba(226,83,60,0.12);border:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#e2533c" stroke-width="1.5"><circle cx="12" cy="12" r="2"/><path d="M16.24 7.76a6 6 0 0 1 0 8.49m-8.48-.01a6 6 0 0 1 0-8.49"/></svg></div><span style="font-size:8px;color:#5a6a8a;letter-spacing:0.5px;font-family:'Space Mono',monospace;text-transform:uppercase">Radio</span></a>
+            <a href="https://family.wrds361.com" target="_blank" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 4px;border-radius:6px;text-decoration:none;border:1px solid transparent"><div style="width:28px;height:28px;border-radius:4px;background:rgba(22,163,74,0.12);border:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div><span style="font-size:8px;color:#5a6a8a;letter-spacing:0.5px;font-family:'Space Mono',monospace;text-transform:uppercase">Family</span></a>
+            <a href="https://apps.wrds361.com" target="_blank" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 4px;border-radius:6px;text-decoration:none;border:1px solid transparent"><div style="width:28px;height:28px;border-radius:4px;background:rgba(100,120,160,0.12);border:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6478a0" stroke-width="1.5"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></div><span style="font-size:8px;color:#5a6a8a;letter-spacing:0.5px;font-family:'Space Mono',monospace;text-transform:uppercase">All Apps</span></a>
+          </div>
+          <div style="border-top:1px solid #243040;padding:8px 14px;display:flex;align-items:center;justify-content:space-between">
+            <a href="https://apps.wrds361.com" target="_blank" style="font-size:9px;color:#4a5a7a;letter-spacing:1px;font-family:'Space Mono',monospace;text-decoration:none;text-transform:uppercase">apps.wrds361.com</a>
+            <span style="font-size:9px;color:#2a3a5a;font-family:'Space Mono',monospace;letter-spacing:1px">SOVEREIGN · SELF-HOSTED</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- ── Main (Phase 7: sidebar + chat) ── -->
+<div id="workspace" class="phase7-sidebar">
+  <aside id="sidebar">
+    <div id="sidebar-head">
+      <button id="new-chat-btn">+ New Chat</button>
+    </div>
+    <div class="side-section-label">Projects <button id="new-proj-btn" title="New project">+</button></div>
+    <div id="projects-list"></div>
+    <div class="side-section-label">Conversations</div>
+    <div id="sessions-list"></div>
+  </aside>
+  <div id="chatcol">
+<div id="shell" style="height:auto;flex:1;max-width:none;margin:0;padding:0;">
+
+  <div id="silex-header">
+    <div id="silex-mark" class="offline"></div>
+    <div id="silex-title"><span>SILEX</span> // myarea-ai</div>
+    <div id="silex-meta">
+      <span id="intent-badge">—</span>
+      <span id="tier-badge" style="color:var(--text-muted);font-size:10px;letter-spacing:0.08em;">ssh</span>
+    </div>
+  </div>
+
+  <div id="statusbar">
+    <span id="status-text">initialising</span>
+    <span class="sep">|</span>
+    <span id="model-label">—</span>
+    <span class="sep">|</span>
+    <span id="gpu-temp">GPU —</span>
+    <span class="sep">|</span>
+    <span id="session-label">session: —</span>
+    <span id="latency-val">—</span>
+  </div>
+
+  <div id="feed">
+    <div class="sys-msg">connection pending — checking models…</div>
+  </div>
+
+  <div id="composer">
+    <span id="prompt-prefix">&gt;</span>
+    <textarea id="input" placeholder="transmit to silex…" rows="1"></textarea>
+    <button id="send-btn" disabled>SEND</button>
+  </div>
+
+</div>
+
+</div></div>
+<button id="scroll-btn">↓ scroll</button>
+
+<!-- ── Footer ── -->
+<footer style="border-top:1px solid var(--border);padding:14px 16px;font-size:11px;color:var(--text-muted);display:flex;align-items:center;justify-content:space-between;max-width:1200px;margin:0 auto;flex-wrap:wrap;gap:8px;">
+  <div>
+    <span style="font-family:var(--font-mono);letter-spacing:3px;color:var(--accent);font-weight:700">MYAREA</span>
+    <span style="margin-left:8px;">Silex AI &copy; 2026</span>
+  </div>
+  <div>
+    <a href="https://apps.wrds361.com" style="color:var(--text-muted);">apps.wrds361.com</a>
+    <span style="margin:0 8px;">·</span>
+    <span>SOVEREIGN · SELF-HOSTED</span>
+  </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
+<script>
+// ── Launcher ──────────────────────────────────────────────────────────────
+(function(){
+  var btn=document.getElementById('ma-launcher-btn');
+  var dd=document.getElementById('ma-launcher-dd');
+  if(!btn||!dd)return;
+  btn.addEventListener('click',function(e){e.stopPropagation();var o=dd.style.display==='block';dd.style.display=o?'none':'block';btn.setAttribute('aria-expanded',o?'false':'true');});
+  document.addEventListener('click',function(){dd.style.display='none';btn.setAttribute('aria-expanded','false');});
+  dd.addEventListener('click',function(e){e.stopPropagation();});
+})();
+
+// ── Theme ─────────────────────────────────────────────────────────────────
+function toggleTheme(){
+  var cur=document.documentElement.getAttribute('data-theme');
+  var btn=document.getElementById('ma-theme-btn');
+  if(cur==='light'){document.documentElement.removeAttribute('data-theme');localStorage.removeItem('ma_theme');if(btn)btn.innerHTML='&#9790;';}
+  else{document.documentElement.setAttribute('data-theme','light');localStorage.setItem('ma_theme','light');if(btn)btn.innerHTML='&#9788;';}
+}
+function toggleContrast(){
+  var cur=document.documentElement.getAttribute('data-theme');
+  if(cur==='high-contrast'){document.documentElement.removeAttribute('data-theme');localStorage.removeItem('ma_theme');}
+  else{document.documentElement.setAttribute('data-theme','high-contrast');localStorage.setItem('ma_theme','high-contrast');}
+}
+(function(){
+  var t=localStorage.getItem('ma_theme');
+  if(t)document.documentElement.setAttribute('data-theme',t);
+  var btn=document.getElementById('ma-theme-btn');
+  if(btn&&t==='light')btn.innerHTML='&#9788;';
+})();
+
+// ── Silex chat ────────────────────────────────────────────────────────────
+(function(){
+  var sessionId=null, streaming=false, streamEl=null;
+  var feed=document.getElementById('feed');
+  var input=document.getElementById('input');
+  var sendBtn=document.getElementById('send-btn');
+  var mark=document.getElementById('silex-mark');
+  var statusTxt=document.getElementById('status-text');
+  var modelLbl=document.getElementById('model-label');
+  var sessLbl=document.getElementById('session-label');
+  var latLbl=document.getElementById('latency-val');
+  var intentBdg=document.getElementById('intent-badge');
+  var scrollBtn=document.getElementById('scroll-btn');
+
+  async function checkStatus(){
+    try{
+      var r=await fetch('/api/status');
+      var d=await r.json();
+      if(d.status==='ok'||d.status==='degraded'){
+        mark.className='';
+        statusTxt.textContent='online';statusTxt.className='active';
+        modelLbl.textContent=d.models&&d.models.silex?d.models.silex.model:'—';
+        sendBtn.disabled=false;
+        clearFeed();
+        appendSys('silex online — '+(d.models&&d.models.silex?d.models.silex.model:''));
+        if(d.status==='degraded')appendSys('⚠ some models unavailable',true);
+      }
+    }catch(e){
+      mark.className='offline';
+      statusTxt.textContent='unreachable';statusTxt.className='';
+      appendSys('cannot reach myarea-ai service',true);
+    }
+  }
+
+  async function send(){
+    var msg=input.value.trim();
+    if(!msg||streaming)return;
+    input.value='';resizeInput();
+    appendMsg('user',msg);
+    setStreaming(true);
+    var body={message:msg,stream:true};
+    if(sessionId)body.session_id=sessionId;
+    /*proj-send*/try{var _p=window.SilexUI&&window.SilexUI.activeProject;if(_p)body.project=_p;}catch(e){}
+    streamEl=appendMsg('silex','',true);
+    var buffer='';
+    try{
+      var resp=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+      if(!resp.ok)throw new Error('HTTP '+resp.status);
+      var reader=resp.body.getReader();
+      var dec=new TextDecoder();
+      var carry='';
+      while(true){
+        var _r=await reader.read();
+        if(_r.done)break;
+        carry+=dec.decode(_r.value,{stream:true});
+        var parts=carry.split('\n\n');
+        carry=parts.pop();
+        for(var i=0;i<parts.length;i++){
+          var block=parts[i];
+          if(!block.trim())continue;
+          var evtType='token',evtData='';
+          var lines=block.split('\n');
+          for(var j=0;j<lines.length;j++){
+            if(lines[j].startsWith('event: '))evtType=lines[j].slice(7).trim();
+            if(lines[j].startsWith('data: '))evtData=lines[j].slice(6);
+          }
+          if(evtType==='token'){
+            buffer+=evtData.replace(/\\n/g,'\n');
+            streamEl.textContent=buffer;
+            scrollToBottom();
+          } else if(evtType==='done'){
+            try{
+              var meta=JSON.parse(evtData);
+              if(meta.session_id){sessionId=meta.session_id;sessLbl.textContent='session: '+sessionId.slice(0,8)+'…';}
+              if(meta.latency_ms)latLbl.textContent=meta.latency_ms+'ms';
+              if(meta.intent){intentBdg.textContent=meta.intent;intentBdg.className='active';}
+              if(window.SilexChat)window.SilexChat.afterSend();
+            }catch(e){}
+          } else if(evtType==='error'){
+            try{var err=JSON.parse(evtData);appendSys(err.error||'stream error',true);}catch(e){appendSys('stream error',true);}
+          }
+        }
+      }
+    }catch(e){appendSys('transmit error: '+e.message,true);}
+    if(streamEl)streamEl.classList.remove('cursor');
+    setStreaming(false);streamEl=null;scrollToBottom();
+  }
+
+  function appendMsg(role,text,cursor){
+    var wrap=document.createElement('div');wrap.className='msg '+role;
+    var meta=document.createElement('div');meta.className='msg-meta';meta.textContent=role==='user'?'you':'silex';wrap.appendChild(meta);
+    var body=document.createElement('div');body.className='msg-body'+(cursor?' cursor':'');body.textContent=text;wrap.appendChild(body);
+    feed.appendChild(wrap);scrollToBottom();return body;
+  }
+  function appendSys(text,isError){
+    var el=document.createElement('div');el.className='sys-msg'+(isError?' error':'');el.textContent=text;feed.appendChild(el);scrollToBottom();
+  }
+  function clearFeed(){feed.innerHTML='';}
+  function setStreaming(on){
+    streaming=on;sendBtn.disabled=on;input.disabled=on;
+    mark.className=on?'streaming':'';
+  }
+  function scrollToBottom(force){
+    var atBottom=feed.scrollHeight-feed.scrollTop-feed.clientHeight<120;
+    if(atBottom||force){feed.scrollTop=feed.scrollHeight;scrollBtn.style.display='none';}
+    else{scrollBtn.style.display='block';}
+  }
+  function resizeInput(){input.style.height='auto';input.style.height=Math.min(input.scrollHeight,160)+'px';}
+
+  sendBtn.addEventListener('click',send);
+  input.addEventListener('keydown',function(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send();}});
+  input.addEventListener('input',resizeInput);
+  feed.addEventListener('scroll',function(){scrollToBottom();});
+  scrollBtn.addEventListener('click',function(){scrollToBottom(true);});
+
+  /*gpu-poll*/function pollGpu(){fetch('/api/status').then(function(r){return r.json();}).then(function(d){var gt=document.getElementById('gpu-temp');if(gt){gt.textContent=(d.gpu_temp!=null?('GPU '+d.gpu_temp+'\u00b0C'):'GPU —');gt.style.color=(d.gpu_temp!=null&&d.gpu_temp>=60)?'#e63946':(d.gpu_temp!=null&&d.gpu_temp>=52?'#f59e0b':'#00d4a0');}}).catch(function(){});}pollGpu();setInterval(pollGpu,5000);
+
+  // ── Phase 7 bridge ──
+  window.SilexChat = {
+    newChat: function(){ sessionId=null; clearFeed(); appendSys('new conversation'); intentBdg.textContent='—'; intentBdg.className=''; sessLbl.textContent='session: —'; window.SilexUI && window.SilexUI.markActive(null); },
+    loadSession: async function(sid){
+      try{
+        var r=await fetch('/api/sessions/'+sid); if(!r.ok)throw 0;
+        var d=await r.json();
+        sessionId=sid; clearFeed();
+        (d.turns||[]).forEach(function(t){ appendMsg(t.role==='assistant'?'silex':'user', t.content); });
+        sessLbl.textContent='session: '+sid.slice(0,8)+'…';
+        window.SilexUI && window.SilexUI.markActive(sid);
+        scrollToBottom(true);
+      }catch(e){ appendSys('could not load conversation',true); }
+    },
+    getProject: function(){ return window.SilexUI ? window.SilexUI.activeProject : null; },
+    afterSend: function(){ window.SilexUI && window.SilexUI.refresh(); }
+  };
+  // hook send() to attach project + refresh list after each exchange
+  var _origSend=send;
+  checkStatus();
+})();
+
+// User dropdown
+(function(){
+  fetch("/auth/me").then(function(r){return r.json();}).then(function(d){
+    if(d.authenticated){
+      var el=document.getElementById("user-display");
+      if(el)el.textContent=d.user.username||d.user.name||"user";
+      var em=document.getElementById("user-email");
+      if(em)em.textContent=d.user.email||"";
+    }
+  });
+  var btn=document.getElementById("userBtn");
+  var dd=document.getElementById("userDrop");
+  if(btn&&dd){
+    btn.addEventListener("click",function(e){e.stopPropagation();dd.style.display=dd.style.display==="block"?"none":"block";});
+    document.addEventListener("click",function(e){if(btn&&!btn.contains(e.target))dd.style.display="none";});
+  }
+})();
+
+
+// ── Phase 7: sessions + projects sidebar ────────────────────────────────────
+(function(){
+  var sessionsList=document.getElementById('sessions-list');
+  var projectsList=document.getElementById('projects-list');
+  var newChatBtn=document.getElementById('new-chat-btn');
+  var newProjBtn=document.getElementById('new-proj-btn');
+  var activeSid=null;
+  var projectsCache=[];
+
+  window.SilexUI={
+    activeProject:null,
+    markActive:function(sid){ activeSid=sid; renderSessionsActive(); },
+    refresh:function(){ loadSessions(); }
+  };
+
+  function timeago(ts){
+    if(!ts)return'';
+    var s=Math.floor(Date.now()/1000-ts);
+    if(s<60)return s+'s';
+    if(s<3600)return Math.floor(s/60)+'m';
+    if(s<86400)return Math.floor(s/3600)+'h';
+    return Math.floor(s/86400)+'d';
+  }
+
+  function renderSessionsActive(){
+    Array.prototype.forEach.call(sessionsList.children,function(el){
+      el.classList.toggle('active', el.getAttribute('data-sid')===activeSid);
+    });
+  }
+
+  async function loadSessions(){
+    try{
+      var r=await fetch('/api/sessions'); var d=await r.json();
+      sessionsList.innerHTML='';
+      /*proj-filter*/var _ap=window.SilexUI.activeProject;
+      var _slist=(d.sessions||[]).filter(function(s){ return _ap===null ? true : (s.project===_ap); });
+      _slist.forEach(function(s){
+        var item=document.createElement('div');
+        item.className='side-item'; item.setAttribute('data-sid',s.session_id);
+        if(s.session_id===activeSid)item.classList.add('active');
+        var row=document.createElement('div'); row.className='side-item-row';
+        var title=document.createElement('div'); title.className='side-item-title'; title.textContent=s.title||'Untitled';
+        var actions=document.createElement('div'); actions.className='side-item-actions';
+        var renameB=document.createElement('button'); renameB.innerHTML='✎'; renameB.title='Rename';
+        var moveB=document.createElement('button'); moveB.innerHTML='📁'; moveB.title='Move to project';
+        var delB=document.createElement('button'); delB.innerHTML='🗑'; delB.title='Delete';
+        actions.appendChild(renameB); actions.appendChild(moveB); actions.appendChild(delB);
+        row.appendChild(title); row.appendChild(actions);
+        var meta=document.createElement('div'); meta.className='side-item-meta';
+        meta.textContent=(s.turns||0)+' turns · '+timeago(s.last_activity);
+        item.appendChild(row); item.appendChild(meta);
+
+        item.addEventListener('click',function(e){
+          if(e.target===renameB||e.target===delB)return;
+          window.SilexChat.loadSession(s.session_id);
+        });
+        renameB.addEventListener('click',async function(e){
+          e.stopPropagation();
+          var nt=prompt('Rename conversation:',s.title||'');
+          if(nt&&nt.trim()){ await fetch('/api/sessions/'+s.session_id+'/rename',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({title:nt.trim()})}); loadSessions(); }
+        });
+        /*move-to-project*/moveB.addEventListener('click',async function(e){
+          e.stopPropagation();
+          var opts=['0) None (remove from project)'];
+          projectsCache.forEach(function(p,i){ opts.push((i+1)+') '+p.name); });
+          var choice=prompt('Move "'+(s.title||'chat')+'" to which project?\n\n'+opts.join('\n')+'\n\nEnter a number:');
+          if(choice===null)return;
+          var n=parseInt(choice,10);
+          var projectId=null;
+          if(n>=1&&n<=projectsCache.length){ projectId=projectsCache[n-1].project_id; }
+          else if(n!==0){ return; }
+          await fetch('/api/sessions/'+s.session_id+'/project',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({project:projectId})});
+          loadSessions();
+        });
+        delB.addEventListener('click',async function(e){
+          e.stopPropagation();
+          if(!confirm('Delete this conversation? This cannot be undone.'))return;
+          await fetch('/api/sessions/'+s.session_id,{method:'DELETE'});
+          if(activeSid===s.session_id)window.SilexChat.newChat();
+          loadSessions();
+        });
+        sessionsList.appendChild(item);
+      });
+      if(!(d.sessions||[]).length){
+        var empty=document.createElement('div'); empty.className='side-item-meta'; empty.style.padding='10px 14px';
+        empty.textContent='No conversations yet'; sessionsList.appendChild(empty);
+      }
+    }catch(e){}
+  }
+
+  async function loadProjects(){
+    try{
+      var r=await fetch('/api/projects'); var d=await r.json();
+      projectsCache=d.projects||[];
+      projectsList.innerHTML='';
+      // "All" pseudo-project
+      var all=document.createElement('div'); all.className='proj-item'+(window.SilexUI.activeProject===null?' active':'');
+      all.innerHTML='<span class="dot" style="background:var(--text-muted)"></span> All conversations';
+      all.addEventListener('click',function(){ window.SilexUI.activeProject=null; loadProjects(); loadSessions(); });
+      projectsList.appendChild(all);
+      (d.projects||[]).forEach(function(p){
+        var item=document.createElement('div'); item.className='proj-item'+(window.SilexUI.activeProject===p.project_id?' active':'');
+        var label=document.createElement('span'); label.style.flex='1'; label.style.display='flex'; label.style.alignItems='center'; label.style.gap='6px';
+        label.innerHTML='<span class="dot"></span> '+p.name;
+        var plus=document.createElement('button');
+        plus.textContent='+'; plus.title='New chat in '+p.name;
+        plus.style.cssText='background:transparent;border:none;color:var(--text-muted);cursor:pointer;font-size:14px;line-height:1;padding:0 4px;';
+        plus.addEventListener('mouseenter',function(){plus.style.color='var(--accent)';});
+        plus.addEventListener('mouseleave',function(){plus.style.color='var(--text-muted)';});
+        var delp=document.createElement('button');
+        delp.textContent='×'; delp.title='Delete project '+p.name;
+        delp.style.cssText='background:transparent;border:none;color:var(--text-muted);cursor:pointer;font-size:15px;line-height:1;padding:0 4px;';
+        delp.addEventListener('mouseenter',function(){delp.style.color='var(--accent)';});
+        delp.addEventListener('mouseleave',function(){delp.style.color='var(--text-muted)';});
+        /*del-project*/delp.addEventListener('click',async function(e){
+          e.stopPropagation();
+          if(!confirm('Delete project "'+p.name+'"?\n\nConversations in it are NOT deleted — they just become unfiled. The project\'s memory collection is left intact.'))return;
+          await fetch('/api/projects/'+p.project_id,{method:'DELETE'});
+          if(window.SilexUI.activeProject===p.project_id){ window.SilexUI.activeProject=null; }
+          loadProjects(); loadSessions();
+        });
+        item.style.display='flex'; item.style.alignItems='center';
+        item.appendChild(label); item.appendChild(plus); item.appendChild(delp);
+        label.addEventListener('click',function(){ window.SilexUI.activeProject=p.project_id; loadProjects(); loadSessions(); });
+        /*proj-newchat*/plus.addEventListener('click',function(e){
+          e.stopPropagation();
+          window.SilexUI.activeProject=p.project_id;
+          window.SilexChat.newChat();
+          loadProjects();
+        });
+        projectsList.appendChild(item);
+      });
+    }catch(e){}
+  }
+
+  newChatBtn.addEventListener('click',function(){ window.SilexChat.newChat(); });
+  newProjBtn.addEventListener('click',async function(){
+    var name=prompt('New project name:');
+    if(name&&name.trim()){ await fetch('/api/projects',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:name.trim()})}); loadProjects(); }
+  });
+
+  // initial load + periodic refresh of session list
+  loadProjects(); loadSessions();
+  setInterval(loadSessions, 15000);
+})();
+
+</script>
+</body>
+</html>
