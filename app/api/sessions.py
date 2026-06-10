@@ -152,7 +152,18 @@ def delete_session(sid):
     uid = _uid()
     mkey = META_KEY_TPL.format(sid=sid)
     meta = r.hgetall(mkey) or {}
-    if meta.get("user", "").strip().lower() != uid:
+    owner = meta.get("user", "").strip().lower()
+
+    # Ownership: meta.user must match — OR (if meta has expired) the session id
+    # being present in THIS user's own sessions set proves ownership.
+    in_user_set = False
+    try:
+        in_user_set = r.zscore(_user_sessions_key(uid), sid) is not None
+    except Exception:
+        pass
+    if owner and owner != uid:
+        return jsonify({"error": "not found"}), 404
+    if not owner and not in_user_set:
         return jsonify({"error": "not found"}), 404
 
     clear_session(sid)

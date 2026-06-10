@@ -7,6 +7,7 @@ dispatcher, streams Silex's response as SSE.
 Supports both streaming (SSE) and blocking (JSON) modes.
 """
 import time
+import os
 import logging
 from flask import Blueprint, request, Response, stream_with_context, jsonify, current_app
 
@@ -35,6 +36,24 @@ def chat():
     if not message:
         return jsonify({"error": "message is required"}), 400
 
+    # ── Thermal safety gate ──────────────────────────────────────────────
+    # The Tesla P4 is passively cooled. If the GPU is hot, refuse inference
+    # and tell the client to wait. Server-enforced (cannot be bypassed via
+    # direct API calls). Threshold 57C; client should retry when it cools.
+    try:
+        from ..memory.capture import _gpu_temp
+        _THERMAL_LIMIT = int(os.environ.get("CHAT_TEMP_LIMIT", "57"))
+        _gt = _gpu_temp()
+        if _gt is not None and _gt >= _THERMAL_LIMIT:
+            return jsonify({
+                "cooling": True,
+                "gpu_temp": _gt,
+                "limit": _THERMAL_LIMIT,
+                "message": f"Silex is cooling down (GPU {_gt}\u00b0C). Holding your message until it's safe to run.",
+            }), 503
+    except Exception as _therm_exc:
+        logger.warning("thermal gate check failed: %s", _therm_exc)
+
     tier = resolve_tier(request)
 
     # Username from SSO session (Silex knows who she's talking to)
@@ -42,6 +61,26 @@ def chat():
     user_name = None
     if user:
         user_name = user.get("name") or user.get("username") or None
+
+    # ── Single-user exclusive lock (single GPU) ──────────────────────────
+    # Only one user may actively use Silex at a time. The Tesla P4 is one
+    # card; concurrent inference competes for VRAM/compute and doubles
+    # thermal load. Architect (ALVA_IDENTITIES) can force-take the lock.
+    try:
+        from ..auth.userlock import check_access, acquire
+        _luid = (user_name or "").strip().lower()
+        if _luid:
+            _ok, _holder = check_access(_luid)
+            if not _ok:
+                return jsonify({
+                    "locked": True,
+                    "holder": _holder,
+                    "message": f"Silex is in use by another user ({_holder}). "
+                               f"Single-GPU system \u2014 one active session at a time. Please wait.",
+                }), 423
+            acquire(_luid)
+    except Exception as _lock_exc:
+        logger.warning("userlock check failed: %s", _lock_exc)
 
     # Resolve project (Phase 7): request overrides session meta.
     project_id = data.get("project")

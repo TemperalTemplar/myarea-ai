@@ -82,7 +82,7 @@ def get_full_system_prompt(context_hint: str | None = None,
         try:
             from rag.retriever import retrieve_context
             if is_alva:
-                rag_context = retrieve_context(context_hint, k_hp=3, k_shm=2, k_lphd=2,
+                rag_context = retrieve_context(context_hint, k_hp=2, k_shm=3, k_lphd=4,
                                                project_collection=project_collection)
             else:
                 # Constitution only — but still allow this user's own project memory

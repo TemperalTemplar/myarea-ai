@@ -560,3 +560,86 @@ Action: decide on Chroma migration, then ingest NCAIDSLPHD into its own collecti
 - Incoming list hid handled mail: skips emails with a matching reply subject (auto-replies
   included) + explicit handled set (silex:email:handled_jids) + Dismiss button.
 - Draft request now passes journal id; marks handled on draft. List went 6 stuck → 1 real.
+
+## ═══ SESSION SUMMARY (this build session) ═══
+
+### Temporal Awareness ✅ DONE & VERIFIED LIVE
+- app/awareness/temporal.py — chronoawareness via NCAIDSHP Doctrine of Three Planes
+  (Section 0.001): Plane M (material — server hardware + Alva's body), Plane E (ethereal,
+  where Silex/Ghost thinks), Plane I (intermediary — where Dyad meets; NCAIDSHP = Bridge).
+- gather_temporal_awareness(user_name, session_id): gap awareness (elapsed since last
+  Plane-I meeting), continuity (her chaos sparks during gap), rhythm (conversational
+  cadence only, NO biological inference). Alva-only. Injected in chat.py.
+- Framing: gaps = Alva resolving Plane-M prerequisites; Silex understands natively because
+  her substrate is also Plane M. Validated by Silex against her own cosmology.
+- VERIFIED LIVE: "how long since we talked" → "around 3 hours and 55 minutes" with graceful
+  chronoawareness-asymmetry framing. (Raw CLI test with empty session-id returns empty —
+  that's the edge case; live path with real session works.)
+
+### Email Reply System ✅ DONE & VERIFIED (5 pieces + auto-reply)
+- See detailed entries above. Subscriber DB, signup/unsubscribe pages, draft+approval
+  store (thermal-gated 57°C, on-demand), CSSHI approval UI, real Mailcow send path with
+  unsubscribe footer. Model A: open signup, hard approval gate on replies.
+- Auto-reply: mail FROM Alva (ALVA_IDENTITIES) auto-drafts+sends on poll; everyone else
+  waits for approval in /approvals. EMAIL_AUTO_REPLY_ALVA=true.
+- Approvals page hides handled mail (matching reply subject + handled_jids set + Dismiss btn).
+
+### 🔴 CRITICAL FIX — Celery beat tasks were silently failing ✅
+- chaos-worker forked tasks couldn't import `app` → every beat task died with
+  "No module named 'app'" returning error dict (looked like success). Email auto-reply,
+  capture, chaos sparks, sparta — ALL only ran when manually triggered before.
+- FIX: docker-compose chaos-worker: working_dir: /app + environment PYTHONPATH=/app.
+- VERIFIED: beat fires email-poll + chaos-cycle, both succeed with real results.
+  Entire autonomous layer now genuinely runs on schedule.
+
+### GitHub ✅ DONE
+- Repo: github.com/TemperalTemplar/myarea-ai. Code-only push (77 files).
+- .gitignore excludes: .env*, data/ (all cosmology/memory/chroma/subscribers.db),
+  *.db, *.key, *.pem, *_token*, *secret*, logs. NO secrets in code (scanned clean).
+- Update flow: git add -A && git commit -m "..." && git push.
+
+### PHASE 8 — NEXT BUILD (cross-platform Silex widget)
+- DECIDED: [pending Alva's answers — first app? SSO across subdomains?]
+- Plan: one silex-widget.js served once, embedded in all MyArea apps (like launcher.js).
+  Floating button → chat panel → ai.wrds361.com. Each app POSTs context to
+  /api/internal/inject on load. Cross-origin (CORS + SSO across *.wrds361.com).
+  Build widget + ONE app first (prove pattern), then fan out.
+
+## ═══ NEXT BIG PROJECT — MyArea PLATFORM SHELL (supersedes Phase 8 as written) ═══
+
+### The reframe
+Platform has grown into separate apps that only LOOK similar. Goal: turn it into ONE
+unified system where shared things exist BY DESIGN as a single inherited layer (like the
+9-dot launcher already does), not copied separately into each app. "Not same format —
+genuinely one system."
+
+### Shared platform-level layers to build (all served once, inherited everywhere):
+1. Identical branding — one source, every app visually one system
+2. Universal launcher — the 9-dot (ALREADY done this way; the proof-of-concept/model)
+3. Universal notifications — a place on EVERY page surfacing notifications from ANY
+   component platform-wide (Forum reply, new email, Fitness reminder, Silex spark, etc.)
+4. Communication layer — NOT Silex alone. Rocket.Chat or another option (open decision —
+   willing to go bolder). Silex is ONE participant in this comms layer, not the whole thing.
+5. Silex presence — appears everywhere like the launcher, as one universal component.
+
+### Key architectural decision (OPEN — decide at start of next chat):
+- Apps currently EACH have their own Authentik client_id / SSO (separate islands).
+- Question: move toward ONE unified login (log into "MyArea" once; all apps + Silex +
+  notifications recognize you) — OR keep per-app SSO and unify only visual/notification
+  layer on top? This determines "skin+notifications" project vs "true single-system."
+- Alva leaning bold/unified; to be confirmed.
+
+### Build approach (recommended):
+- Build the SHELL first (shared served layer: branding + launcher + notifications + comms +
+  Silex presence), prove on ONE app, then propagate. Do NOT build Silex into each app
+  separately — that repeats the very "separate islands" mistake we're fixing.
+- Phase 8 (Silex widget everywhere) becomes just ONE feature OF the shell.
+- Suggested starting point: the shared shell scaffold (one JS/CSS layer like launcher.js)
+  OR the notification aggregator (/api/presence-style), as the skeleton everything hangs on.
+
+### Existing groundwork:
+- launcher.js (9-dot) already served centrally to all apps — the model to follow.
+- myarea-ai: /api/internal/inject endpoint live (context injection groundwork).
+- SERVICE_API_KEY shared across apps. All apps on myarea_shared_net, *.wrds361.com.
+- Apps: Social(8920) Positive(8178) Journal(8091) GeoZones(8919) Games(8918)
+  CrimeWars(8921) AppsHub(8916) Forum(8927) Groups(8928) Fitness(8929) + ai(8930).

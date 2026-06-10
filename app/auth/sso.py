@@ -90,6 +90,14 @@ def callback():
 @sso_bp.get("/auth/logout")
 def logout():
     user = session.pop("user", None)
+    # Release the single-user GPU lock on logout (frees it immediately
+    # instead of waiting for the idle TTL to expire).
+    try:
+        from .userlock import release
+        if user:
+            release((user.get("name") or user.get("username") or "").strip().lower())
+    except Exception:
+        pass
     if user:
         log.info("SSO logout: %s", user.get("username"))
     auth_url = _cfg("AUTHENTIK_URL", "https://auth.wrds361.com")

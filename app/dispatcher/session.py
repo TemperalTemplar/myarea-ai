@@ -85,7 +85,9 @@ def append_turn(session_id: str, role: str, content: str, user_name: str | None 
     ttl = current_app.config["NCAIDSSHM_TTL"]
     try:
         redis_client.rpush(key, json.dumps({"role": role, "content": content}))
-        redis_client.expire(key, ttl)
+        # Conversation turns are permanent (no TTL) — they are durable history,
+        # not short-term memory. Persist any pre-existing TTL too.
+        redis_client.persist(key)
         _touch_session(session_id, user_name, ttl, first_user_msg=(role == "user" and content))
     except Exception as exc:
         logger.error("Redis write failed for session %s: %s", session_id, exc)
@@ -109,7 +111,8 @@ def _touch_session(session_id: str, user_name: str | None, ttl: int,
             mapping["title"] = first_user_msg.strip()[:60]
 
         redis_client.hset(meta_key, mapping=mapping)
-        redis_client.expire(meta_key, ttl + 7200)
+        # Session metadata is permanent (no TTL).
+        redis_client.persist(meta_key)
         redis_client.sadd(ACTIVE_SET, session_id)
 
         # Per-user sorted set for the UI sidebar

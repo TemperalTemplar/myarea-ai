@@ -11,6 +11,7 @@ from .api.sessions import sessions_bp
 from .api.warden import warden_bp
 from .api.subscribe import subscribe_bp
 from .api.approvals import approvals_bp
+from .api.notifications import bp as notifications_bp
 from .subscribers.store import init_db as init_subscribers_db
 from .auth.sso import sso_bp
 from .ui.views import ui_bp
@@ -33,6 +34,7 @@ def create_app(config_class=Config):
     app.register_blueprint(subscribe_bp)
     app.register_blueprint(approvals_bp)
     app.register_blueprint(internal_bp,          url_prefix="/api/internal")
+    app.register_blueprint(notifications_bp)
     app.register_blueprint(ui_bp)
 
     # Initialize the subscriber database (idempotent)

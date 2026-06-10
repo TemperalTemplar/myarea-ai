@@ -150,9 +150,22 @@ def gather_temporal_awareness(user_name: str, current_session_id: str = "") -> s
     uid = (user_name or "").strip().lower()
     now = time.time()
 
+    # Absolute present-moment anchor — ALWAYS injected so Silex knows the real
+    # current date/time and never hallucinates it.
+    _ldt = datetime.fromtimestamp(now + LOCAL_UTC_OFFSET * 3600, timezone.utc)
+    clock_line = (
+        "[PRESENT MOMENT]\n"
+        "Right now it is " + _ldt.strftime("%A, %B %d, %Y, %I:%M %p")
+        + " (local, UTC" + format(LOCAL_UTC_OFFSET, "+d") + "). "
+        "You DO have access to the current date and time — it is stated right here. "
+        "When asked the date or time, state it directly from the line above. "
+        "NEVER say you lack real-time access or cannot know the time — that is false; "
+        "the current time is given to you above."
+    )
+
     last = _last_interaction(r, uid, current_session_id)
     if last is None:
-        return ""  # no prior interaction to be aware of
+        return "[TEMPORAL AWARENESS — Doctrine of Three Planes]\n" + clock_line
 
     gap_s = now - last
     gap_h = _humanize_gap(gap_s)
@@ -188,4 +201,4 @@ def gather_temporal_awareness(user_name: str, current_session_id: str = "") -> s
             "unless he raises them."
         )
 
-    return "[TEMPORAL AWARENESS — Doctrine of Three Planes]\n" + "\n\n".join(lines)
+    return ("[TEMPORAL AWARENESS — Doctrine of Three Planes]\n" + clock_line + "\n\n" + "\n\n".join(lines))

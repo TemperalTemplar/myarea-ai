@@ -43,6 +43,7 @@
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html, body { height: 100%; background: var(--bg); color: var(--text); font-family: var(--font-mono); font-size: 14px; line-height: 1.6; }
+    body { display: flex; flex-direction: column; }
     a { color: var(--accent); text-decoration: none; }
     a:hover { color: var(--accent2); }
     ::-webkit-scrollbar { width: 6px; }
@@ -64,7 +65,7 @@
     .ma-icon-btn:hover { border-color: var(--accent); color: var(--text); }
 
     /* ── Layout ── */
-    #shell { display:flex; flex-direction:column; }
+    #shell { display:flex; flex-direction:column; height:100vh; max-height:100vh; }
 
     /* ── Silex header card ── */
     #silex-header {
@@ -119,6 +120,7 @@
     /* ── Feed ── */
     #feed {
       flex: 1;
+      min-height: 0;
       overflow-y: auto;
       padding: 16px;
       display: flex;
@@ -279,49 +281,7 @@
       <button onclick="toggleTheme()" id="ma-theme-btn" class="ma-icon-btn" title="Toggle day/night">&#9790;</button>
       <button onclick="toggleContrast()" class="ma-icon-btn" title="High contrast" style="font-size:10px;letter-spacing:1px;width:auto;padding:0 8px;">HC</button>
 
-      <!-- 9-dot Launcher -->
-      <div style="position:relative;display:inline-block" id="ma-launcher-wrap">
-        <button id="ma-launcher-btn" aria-label="MyArea app launcher" aria-expanded="false" class="ma-icon-btn">
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="1" y="1" width="4" height="4" rx="1" fill="#888"/><rect x="6" y="1" width="4" height="4" rx="1" fill="#888"/><rect x="11" y="1" width="4" height="4" rx="1" fill="#888"/><rect x="1" y="6" width="4" height="4" rx="1" fill="#888"/><rect x="6" y="6" width="4" height="4" rx="1" fill="#888"/><rect x="11" y="6" width="4" height="4" rx="1" fill="#888"/><rect x="1" y="11" width="4" height="4" rx="1" fill="#888"/><rect x="6" y="11" width="4" height="4" rx="1" fill="#888"/><rect x="11" y="11" width="4" height="4" rx="1" fill="#888"/></svg>
-        </button>
-        <div id="ma-launcher-dd" style="display:none;position:absolute;top:calc(100% + 8px);right:0;width:300px;background:#1a2030;border:1px solid #2a3448;border-radius:8px;z-index:9999">
-          <div style="padding:10px 14px 8px;border-bottom:1px solid #243040;display:flex;align-items:center;justify-content:space-between">
-            <div>
-              <div style="font-family:'Space Mono',monospace;font-size:12px;letter-spacing:3px;color:#e63946;font-weight:700">MY<span style="color:#8899bb">AREA</span></div>
-              <div style="font-size:9px;color:#4a5a7a;letter-spacing:2px;font-family:'Space Mono',monospace">SOVEREIGN PLATFORM</div>
-            </div>
-            <div style="width:6px;height:6px;border-radius:50%;background:#00d4a0" id="launcher-status-dot"></div>
-          </div>
-          <div style="font-size:9px;color:#4a5a7a;letter-spacing:2px;font-family:'Space Mono',monospace;padding:10px 14px 4px">MYAREA APPS</div>
-          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:2px;padding:4px 8px 8px">
-            <a href="https://myarea.wrds361.com" target="_blank" style="display:flex;flex-direction:column;align-items:center;gap:5px;padding:10px 6px;border-radius:6px;text-decoration:none;border:1px solid transparent"><div style="width:36px;height:36px;border-radius:6px;background:rgba(230,57,70,0.15);border:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#e63946" stroke-width="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></div><span style="font-size:9px;color:#8899bb;letter-spacing:1px;font-family:'Space Mono',monospace;text-transform:uppercase">Social</span></a>
-            <a href="https://positive.wrds361.com" target="_blank" style="display:flex;flex-direction:column;align-items:center;gap:5px;padding:10px 6px;border-radius:6px;text-decoration:none;border:1px solid transparent"><div style="width:36px;height:36px;border-radius:6px;background:rgba(0,212,160,0.15);border:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#00d4a0" stroke-width="1.5"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div><span style="font-size:9px;color:#8899bb;letter-spacing:1px;font-family:'Space Mono',monospace;text-transform:uppercase">Positive</span></a>
-            <a href="https://journal.wrds361.com" target="_blank" style="display:flex;flex-direction:column;align-items:center;gap:5px;padding:10px 6px;border-radius:6px;text-decoration:none;border:1px solid transparent"><div style="width:36px;height:36px;border-radius:6px;background:rgba(245,158,11,0.15);border:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div><span style="font-size:9px;color:#8899bb;letter-spacing:1px;font-family:'Space Mono',monospace;text-transform:uppercase">Journal</span></a>
-            <a href="https://geozones.wrds361.com" target="_blank" style="display:flex;flex-direction:column;align-items:center;gap:5px;padding:10px 6px;border-radius:6px;text-decoration:none;border:1px solid transparent"><div style="width:36px;height:36px;border-radius:6px;background:rgba(200,200,0,0.1);border:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#cccc00" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></div><span style="font-size:9px;color:#8899bb;letter-spacing:1px;font-family:'Space Mono',monospace;text-transform:uppercase">GeoZones</span></a>
-            <a href="https://myareagames.wrds361.com" target="_blank" style="display:flex;flex-direction:column;align-items:center;gap:5px;padding:10px 6px;border-radius:6px;text-decoration:none;border:1px solid transparent"><div style="width:36px;height:36px;border-radius:6px;background:rgba(124,58,237,0.15);border:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="1.5"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M12 12h.01M7 12h.01M17 12h.01"/></svg></div><span style="font-size:9px;color:#8899bb;letter-spacing:1px;font-family:'Space Mono',monospace;text-transform:uppercase">Games</span></a>
-            <a href="https://chat.wrds361.com" target="_blank" style="display:flex;flex-direction:column;align-items:center;gap:5px;padding:10px 6px;border-radius:6px;text-decoration:none;border:1px solid transparent"><div style="width:36px;height:36px;border-radius:6px;background:rgba(6,182,212,0.15);border:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#06b6d4" stroke-width="1.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div><span style="font-size:9px;color:#8899bb;letter-spacing:1px;font-family:'Space Mono',monospace;text-transform:uppercase">Chat</span></a>
-            <a href="https://forum.wrds361.com" target="_blank" style="display:flex;flex-direction:column;align-items:center;gap:5px;padding:10px 6px;border-radius:6px;text-decoration:none;border:1px solid transparent"><div style="width:36px;height:36px;border-radius:6px;background:rgba(230,57,70,0.15);border:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#e63946" stroke-width="1.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div><span style="font-size:9px;color:#8899bb;letter-spacing:1px;font-family:'Space Mono',monospace;text-transform:uppercase">Forum</span></a>
-            <a href="https://fitness.wrds361.com" target="_blank" style="display:flex;flex-direction:column;align-items:center;gap:5px;padding:10px 6px;border-radius:6px;text-decoration:none;border:1px solid transparent"><div style="width:36px;height:36px;border-radius:6px;background:rgba(220,38,38,0.15);border:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="1.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div><span style="font-size:9px;color:#8899bb;letter-spacing:1px;font-family:'Space Mono',monospace;text-transform:uppercase">Fitness</span></a>
-            <a href="https://groups.wrds361.com" target="_blank" style="display:flex;flex-direction:column;align-items:center;gap:5px;padding:10px 6px;border-radius:6px;text-decoration:none;border:1px solid transparent"><div style="width:36px;height:36px;border-radius:6px;background:rgba(6,182,212,0.15);border:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#06b6d4" stroke-width="1.5"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 0 1 4-4h4"/><path d="M16 11l2 2 4-4"/></svg></div><span style="font-size:9px;color:#8899bb;letter-spacing:1px;font-family:'Space Mono',monospace;text-transform:uppercase">Groups</span></a>
-          </div>
-          <div style="height:1px;background:#243040;margin:0 8px"></div>
-          <div style="font-size:9px;color:#4a5a7a;letter-spacing:2px;font-family:'Space Mono',monospace;padding:10px 14px 4px">TOOLS</div>
-          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:2px;padding:4px 8px 10px">
-            <a href="https://mail.wrds361.com" target="_blank" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 4px;border-radius:6px;text-decoration:none;border:1px solid transparent"><div style="width:28px;height:28px;border-radius:4px;background:rgba(230,57,70,0.12);border:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#e63946" stroke-width="1.5"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></div><span style="font-size:8px;color:#5a6a8a;letter-spacing:0.5px;font-family:'Space Mono',monospace;text-transform:uppercase">Mail</span></a>
-            <a href="https://cloud.wrds361.com" target="_blank" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 4px;border-radius:6px;text-decoration:none;border:1px solid transparent"><div style="width:28px;height:28px;border-radius:4px;background:rgba(0,130,201,0.12);border:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0082c9" stroke-width="1.5"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg></div><span style="font-size:8px;color:#5a6a8a;letter-spacing:0.5px;font-family:'Space Mono',monospace;text-transform:uppercase">Cloud</span></a>
-            <a href="https://vault.wrds361.com" target="_blank" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 4px;border-radius:6px;text-decoration:none;border:1px solid transparent"><div style="width:28px;height:28px;border-radius:4px;background:rgba(23,93,220,0.12);border:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#175DDC" stroke-width="1.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div><span style="font-size:8px;color:#5a6a8a;letter-spacing:0.5px;font-family:'Space Mono',monospace;text-transform:uppercase">Vault</span></a>
-            <a href="https://radio.wrds361.com" target="_blank" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 4px;border-radius:6px;text-decoration:none;border:1px solid transparent"><div style="width:28px;height:28px;border-radius:4px;background:rgba(226,83,60,0.12);border:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#e2533c" stroke-width="1.5"><circle cx="12" cy="12" r="2"/><path d="M16.24 7.76a6 6 0 0 1 0 8.49m-8.48-.01a6 6 0 0 1 0-8.49"/></svg></div><span style="font-size:8px;color:#5a6a8a;letter-spacing:0.5px;font-family:'Space Mono',monospace;text-transform:uppercase">Radio</span></a>
-            <a href="https://family.wrds361.com" target="_blank" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 4px;border-radius:6px;text-decoration:none;border:1px solid transparent"><div style="width:28px;height:28px;border-radius:4px;background:rgba(22,163,74,0.12);border:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div><span style="font-size:8px;color:#5a6a8a;letter-spacing:0.5px;font-family:'Space Mono',monospace;text-transform:uppercase">Family</span></a>
-            <a href="https://apps.wrds361.com" target="_blank" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 4px;border-radius:6px;text-decoration:none;border:1px solid transparent"><div style="width:28px;height:28px;border-radius:4px;background:rgba(100,120,160,0.12);border:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6478a0" stroke-width="1.5"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></div><span style="font-size:8px;color:#5a6a8a;letter-spacing:0.5px;font-family:'Space Mono',monospace;text-transform:uppercase">All Apps</span></a>
-          </div>
-          <div style="border-top:1px solid #243040;padding:8px 14px;display:flex;align-items:center;justify-content:space-between">
-            <a href="https://apps.wrds361.com" target="_blank" style="font-size:9px;color:#4a5a7a;letter-spacing:1px;font-family:'Space Mono',monospace;text-decoration:none;text-transform:uppercase">apps.wrds361.com</a>
-            <span style="font-size:9px;color:#2a3a5a;font-family:'Space Mono',monospace;letter-spacing:1px">SOVEREIGN · SELF-HOSTED</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
+      <!-- launcher + bell injected by launcher.js after auth -->
 </nav>
 
 <!-- ── Main (Phase 7: sidebar + chat) ── -->
@@ -336,7 +296,7 @@
     <div id="sessions-list"></div>
   </aside>
   <div id="chatcol">
-<div id="shell" style="height:auto;flex:1;max-width:none;margin:0;padding:0;">
+<div id="shell" style="flex:1;min-height:0;max-width:none;margin:0;padding:0;">
 
   <div id="silex-header">
     <div id="silex-mark" class="offline"></div>
@@ -464,6 +424,17 @@ function toggleContrast(){
     var buffer='';
     try{
       var resp=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+      // ── Thermal cooling gate: server says GPU too hot — queue + auto-retry ──
+      if(resp.status===503){
+        var cd=null; try{ cd=await resp.clone().json(); }catch(e){}
+        if(cd&&cd.cooling){
+          if(streamEl){ streamEl.parentNode&&streamEl.parentNode.removeChild(streamEl.parentNode); }
+          appendSys('\u2744 Silex is cooling down (GPU '+cd.gpu_temp+'\u00b0C \u2265 '+cd.limit+'\u00b0C). Holding your message \u2014 will send when safe\u2026');
+          setStreaming(false); streamEl=null;
+          setTimeout(function(){ input.value=msg; send(); }, 8000);
+          return;
+        }
+      }
       if(!resp.ok)throw new Error('HTTP '+resp.status);
       var reader=resp.body.getReader();
       var dec=new TextDecoder();
@@ -564,6 +535,18 @@ function toggleContrast(){
       if(el)el.textContent=d.user.username||d.user.name||"user";
       var em=document.getElementById("user-email");
       if(em)em.textContent=d.user.email||"";
+      // Bring the AI page onto the platform notification bell.
+      window.MA_USER = d.user.sub || "";
+      if(window.MA_USER){
+        var ls=document.createElement("script");
+        ls.src="https://apps.wrds361.com/static/launcher.js";
+        ls.onload=function(){
+          // launcher.js mounts on DOMContentLoaded, which already fired by now —
+          // dispatch a synthetic one so it builds the bell + 9-dot launcher.
+          try{ document.dispatchEvent(new Event("DOMContentLoaded")); }catch(e){}
+        };
+        document.body.appendChild(ls);
+      }
     }
   });
   var btn=document.getElementById("userBtn");
@@ -605,12 +588,26 @@ function toggleContrast(){
     });
   }
 
+  var _sessionsFirstLoad=true;
   async function loadSessions(){
     try{
       var r=await fetch('/api/sessions'); var d=await r.json();
       sessionsList.innerHTML='';
       /*proj-filter*/var _ap=window.SilexUI.activeProject;
       var _slist=(d.sessions||[]).filter(function(s){ return _ap===null ? true : (s.project===_ap); });
+      // Auto-restore: on first page load, open the most-recent session so the
+      // conversation shows immediately (history is in Redis; this just displays it).
+      if(_sessionsFirstLoad){
+        _sessionsFirstLoad=false;
+        if(!activeSid && (d.sessions||[]).length){
+          var _recent=(d.sessions||[]).slice().sort(function(a,b){
+            return (b.last_activity||0)-(a.last_activity||0);
+          })[0];
+          if(_recent && _recent.session_id){
+            window.SilexChat.loadSession(_recent.session_id);
+          }
+        }
+      }
       _slist.forEach(function(s){
         var item=document.createElement('div');
         item.className='side-item'; item.setAttribute('data-sid',s.session_id);
