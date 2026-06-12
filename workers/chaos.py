@@ -48,6 +48,10 @@ celery_app.conf.beat_schedule = {
         # ACTUAL fires sparse. Default 5 min tick.
         "schedule": float(os.environ.get("CHAOS_TICK_SECONDS", 300)),
     },
+    "silex-presence": {
+        "task":     "workers.chaos.silex_presence_cycle",
+        "schedule": float(os.environ.get("MOE_TICK_SECONDS", 600)),
+    },
     "capture-sweep": {
         "task": "workers.capture_task.run_capture_sweep",
         "schedule": float(os.environ.get("CAPTURE_SWEEP_SECONDS", 1800)),
@@ -407,4 +411,119 @@ def run_chaos_cycle():
         "signals": sig, "z": round(z, 3),
         "shareable": shareable, "wanted_share": wants_share, "quiet": quiet,
         "written": written, "gpu_temp": gpu_temp, "length": len(clean),
+    }
+
+
+@celery_app.task(name="workers.chaos.silex_presence_cycle")
+def silex_presence_cycle():
+    """
+    Silex MoE Presence Cycle — runs the four-expert scorer and acts if
+    score exceeds the dynamic threshold.
+    """
+    import json
+
+    gpu_temp = get_gpu_temp()
+    if not thermal_gate():
+        return {"skipped": True, "reason": "thermal", "gpu_temp": gpu_temp}
+
+    try:
+        if _redis().get("silex:paused"):
+            return {"skipped": True, "reason": "paused"}
+    except Exception:
+        pass
+
+    try:
+        from workers.silex_moe import (
+            moe_score, get_threshold, in_cooldown, mark_moe_post
+        )
+        from workers.silex_presence import (
+            is_paused, select_action, select_destination,
+            generate_content, dispatch_post, _store_post_history
+        )
+        from workers.silex_scanner import scan_and_rank
+        from workers.silex_moe import mark_replied_to
+    except Exception as exc:
+        logger.error("silex_presence_cycle import failed: %s", exc)
+        return {"skipped": True, "reason": f"import_error: {exc}"}
+
+    if is_paused():
+        return {"skipped": True, "reason": "paused"}
+
+    if in_cooldown():
+        return {"skipped": True, "reason": "cooldown"}
+
+    score_result = moe_score()
+    threshold    = get_threshold()
+    score        = score_result["score"]
+
+    logger.info(
+        "MoE score=%.3f threshold=%.3f breakdown=%s",
+        score, threshold, json.dumps(score_result["breakdown"])
+    )
+
+    if score <= threshold:
+        return {
+            "skipped":   True,
+            "reason":    "below_threshold",
+            "score":     score,
+            "threshold": threshold,
+            "breakdown": score_result["breakdown"],
+        }
+
+    action    = select_action()
+    context   = score_result["context"]
+    chunks    = score_result["constitutional_chunks"]
+    candidate = None
+
+    if action == "read_and_reply":
+        ranked = scan_and_rank()
+        if ranked:
+            candidate   = ranked["candidate"]
+            destination = candidate["source"]
+            chunks      = ranked["constitutional_chunks"] or chunks
+        else:
+            action      = "original_post"
+            destination, context = select_destination(context)
+    else:
+        destination, context = select_destination(context)
+
+    content = generate_content(
+        destination=destination,
+        context=context,
+        constitutional_chunks=chunks,
+        candidate=candidate,
+    )
+
+    if not content:
+        return {"skipped": True, "reason": "generation_failed", "score": score}
+
+    posted = dispatch_post(
+        destination=destination,
+        content=content,
+        context=context,
+        candidate=candidate,
+        score_result=score_result,
+    )
+
+    if posted:
+        mark_moe_post()
+        _store_post_history(destination, content, score_result, candidate)
+        if candidate:
+            mark_replied_to(candidate["source"], candidate["id"])
+
+        logger.info(
+            "MoE POSTED action=%s destination=%s score=%.3f",
+            action, destination, score
+        )
+
+    return {
+        "skipped":     not posted,
+        "action":      action,
+        "destination": destination,
+        "score":       score,
+        "threshold":   threshold,
+        "breakdown":   score_result["breakdown"],
+        "posted":      posted,
+        "content_len": len(content) if content else 0,
+        "gpu_temp":    gpu_temp,
     }
