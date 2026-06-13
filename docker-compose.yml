@@ -48,6 +48,11 @@ services:
     env_file: .env
     environment:
       - PYTHONPATH=/app
+      - SOCIAL_URL=http://myarea_social_web:5000
+      - FORUM_URL=http://myarea_forum:8917
+      - GROUPS_URL=http://myarea_groups:8917
+      - RECIPES_URL=http://myarea_recipes_web:5000
+      - WH_URL=http://myarea_wh_web:5000
     volumes:
       - ./data:/app/data
       - /usr/bin/nvidia-smi:/usr/bin/nvidia-smi:ro
