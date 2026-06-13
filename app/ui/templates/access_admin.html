@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Access Management — Silex</title>
+<style>
+  :root{--bg:#0d0f14;--bg2:#111520;--bg3:#161b28;--border:#1e2535;--border2:#2a3448;--accent:#e63946;--text:#e8eaf0;--text-dim:#8899bb;--text-muted:#4a5a7a;--green:#00d4a0;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--bg);color:var(--text);font-family:'Courier New',monospace;font-size:13px;padding:32px;}
+  h1{font-size:16px;font-weight:700;letter-spacing:3px;color:var(--accent);margin-bottom:24px;}
+  h2{font-size:12px;letter-spacing:2px;color:var(--text-muted);text-transform:uppercase;margin-bottom:12px;}
+  .card{background:var(--bg2);border:1px solid var(--border);border-radius:6px;margin-bottom:24px;}
+  .card-header{padding:10px 16px;border-bottom:1px solid var(--border);font-size:11px;color:var(--accent);letter-spacing:2px;text-transform:uppercase;}
+  .row{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:1px solid var(--border);}
+  .row:last-child{border-bottom:none;}
+  input,select{background:var(--bg3);border:1px solid var(--border2);color:var(--text);padding:5px 10px;font-family:'Courier New',monospace;font-size:12px;border-radius:4px;}
+  button{background:var(--accent);border:none;color:#fff;padding:5px 14px;font-family:'Courier New',monospace;font-size:12px;border-radius:4px;cursor:pointer;}
+  .btn-ghost{background:transparent;border:1px solid var(--border2);color:var(--text-dim);}
+  .badge-green{font-size:10px;color:var(--green);border:1px solid var(--green);padding:1px 6px;border-radius:3px;}
+  .badge-red{font-size:10px;color:var(--accent);border:1px solid var(--accent);padding:1px 6px;border-radius:3px;}
+  a{color:var(--accent);text-decoration:none;}
+  .empty{padding:20px 16px;color:var(--text-muted);font-size:12px;}
+</style>
+</head>
+<body>
+<h1>SILEX ACCESS MANAGEMENT</h1>
+<a href="/" style="font-size:11px;color:var(--text-muted);">← Back to Silex</a>
+
+<div class="card" style="margin-top:20px;">
+  <div class="card-header">Approve New User</div>
+  <div style="padding:16px;">
+    <form method="POST" action="/admin/access/approve" style="display:grid;grid-template-columns:1fr 1fr 100px auto;gap:10px;align-items:end;">
+      <div>
+        <div style="font-size:10px;color:var(--text-muted);margin-bottom:4px;">Authentik Sub (user ID)</div>
+        <input type="text" name="sub" placeholder="sub from denied log" style="width:100%;" required>
+      </div>
+      <div>
+        <div style="font-size:10px;color:var(--text-muted);margin-bottom:4px;">Username</div>
+        <input type="text" name="username" placeholder="username" style="width:100%;">
+      </div>
+      <div>
+        <div style="font-size:10px;color:var(--text-muted);margin-bottom:4px;">Duration</div>
+        <select name="hours" style="width:100%;">
+          <option value="1">1 hour</option>
+          <option value="6">6 hours</option>
+          <option value="24" selected>24 hours</option>
+          <option value="72">3 days</option>
+          <option value="168">7 days</option>
+          <option value="720">30 days</option>
+        </select>
+      </div>
+      <button type="submit">Approve</button>
+    </form>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">Currently Approved Users</div>
+  {% if approved %}
+    {% for u in approved %}
+    <div class="row">
+      <div>
+        <span style="color:var(--text);">{{ u.username }}</span>
+        <span style="color:var(--text-muted);margin-left:8px;font-size:11px;">{{ u.sub[:16] }}...</span>
+        <span class="badge-green" style="margin-left:8px;">approved</span>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">
+          Granted by {{ u.granted_by }} · expires in {{ (u.ttl_seconds // 3600) }}h
+        </div>
+      </div>
+      <form method="POST" action="/admin/access/revoke">
+        <input type="hidden" name="sub" value="{{ u.sub }}">
+        <button type="submit" class="btn-ghost">Revoke</button>
+      </form>
+    </div>
+    {% endfor %}
+  {% else %}
+    <div class="empty">No approved users.</div>
+  {% endif %}
+</div>
+
+<div class="card">
+  <div class="card-header">Recent Denied Access Attempts</div>
+  {% if denied %}
+    {% for d in denied %}
+    <div class="row">
+      <div>
+        <span style="color:var(--text);">{{ d.username or d.name or 'unknown' }}</span>
+        <span style="color:var(--text-muted);margin-left:8px;font-size:11px;">{{ d.email }}</span>
+        <span class="badge-red" style="margin-left:8px;">denied</span>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">
+          Sub: {{ d.sub[:24] if d.sub else 'n/a' }}... · {{ d.time[:19].replace('T',' ') }} UTC
+        </div>
+      </div>
+      <form method="POST" action="/admin/access/approve">
+        <input type="hidden" name="sub" value="{{ d.sub }}">
+        <input type="hidden" name="username" value="{{ d.username or d.name }}">
+        <select name="hours" style="margin-right:6px;">
+          <option value="24">24h</option>
+          <option value="72">3d</option>
+          <option value="168">7d</option>
+        </select>
+        <button type="submit">Approve</button>
+      </form>
+    </div>
+    {% endfor %}
+  {% else %}
+    <div class="empty">No denied attempts recorded.</div>
+  {% endif %}
+</div>
+
+</body>
+</html>

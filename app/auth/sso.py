@@ -75,15 +75,30 @@ def callback():
     claims = _get_userinfo(token_data["access_token"])
     if not claims:
         return redirect("/auth/login")
-    session["user"] = {
+    user = {
         "sub":      claims.get("sub", ""),
         "email":    claims.get("email", ""),
         "username": claims.get("preferred_username", ""),
         "name":     claims.get("name", ""),
         "groups":   claims.get("groups", []),
     }
+    session["user"] = user
     session.permanent = True
-    log.info("SSO login: %s", session["user"]["username"])
+    log.info("SSO login: %s", user["username"])
+
+    # ── Platform access gate ─────────────────────────────────────────────
+    try:
+        from .access import check_access, log_denied
+        allowed, reason = check_access(user)
+        if not allowed:
+            log_denied(user)
+            session.pop("user", None)  # clear session — not allowed in
+            log.warning("Access denied: %s (%s)", user["username"], reason)
+            return redirect("/access/denied")
+    except Exception as exc:
+        log.error("Access gate error (failing open): %s", exc)
+    # ── End access gate ──────────────────────────────────────────────────
+
     return redirect(session.pop("sso_next", "/"))
 
 
@@ -146,3 +161,9 @@ def _get_userinfo(access_token):
     except Exception as exc:
         log.error("Userinfo error: %s", exc)
         return None
+
+
+@sso_bp.get("/access/denied")
+def access_denied():
+    from flask import render_template
+    return render_template("access_denied.html"), 403

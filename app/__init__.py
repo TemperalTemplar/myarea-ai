@@ -35,6 +35,8 @@ def create_app(config_class=Config):
     app.register_blueprint(approvals_bp)
     app.register_blueprint(internal_bp,          url_prefix="/api/internal")
     app.register_blueprint(notifications_bp)
+    from .api.access_admin import access_admin_bp
+    app.register_blueprint(access_admin_bp)
     app.register_blueprint(ui_bp)
 
     # Initialize the subscriber database (idempotent)
